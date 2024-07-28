@@ -46,7 +46,7 @@ public class PlayerSpawner : NetworkBehaviour
         int i = 1;
         foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
-            GameObject playerInstance = Instantiate(playerPrefab, new Vector3(i * 3f, 1, i * 3f), Quaternion.identity);
+            GameObject playerInstance = Instantiate(playerPrefab, new Vector3(i * 3f, 6, i * 3f), Quaternion.identity);
             i++;
             if (playerInstance == null)
             {
