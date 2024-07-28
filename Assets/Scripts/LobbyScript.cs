@@ -10,6 +10,10 @@ using Unity.Services.Relay.Models;
 using UnityEngine;
 using Unity.Netcode;
 using TMPro;
+using System.Runtime.CompilerServices;
+using Unity.VisualScripting;
+
+
 
 
 
@@ -45,7 +49,8 @@ public class LobbyScript : MonoBehaviour
 #endif
         await UnityServices.InitializeAsync(options);
         AuthenticationService.Instance.SignedIn += UserSignedIn;
-        await AuthenticationService.Instance.SignInAnonymouslyAsync();
+        if (!AuthenticationService.Instance.IsAuthorized)
+            await AuthenticationService.Instance.SignInAnonymouslyAsync();
     }
 
     private void UserSignedIn()
@@ -78,11 +83,25 @@ public class LobbyScript : MonoBehaviour
         }
     }
 
+    public async void DeleteLobby()
+    {
+        if (isLobbyHost && hostLobby != null)
+        {
+            await LobbyService.Instance.DeleteLobbyAsync(hostLobby.Id);
+            isLobbyHost = false;
+            hostLobby = null;
+
+            NetworkManagerSingleton.Instance.Shutdown();
+        }
+        startScreen.SetActive(true);
+        lobbyScreen.SetActive(false);
+    }
+
     public async void CreateLobby()
     {
         try
         {
-            int maxPlayers = 4;
+            int maxPlayers = 2;
 
             var a = await RelayService.Instance.CreateAllocationAsync(maxPlayers);
             var joinCode = await RelayService.Instance.GetJoinCodeAsync(a.AllocationId);
@@ -100,7 +119,7 @@ public class LobbyScript : MonoBehaviour
 
             _transport.SetHostRelayData(a.RelayServer.IpV4, (ushort)a.RelayServer.Port, a.AllocationIdBytes, a.Key, a.ConnectionData);
             isLobbyHost = true;
-            NetworkManager.Singleton.StartHost();
+            NetworkManagerSingleton.Instance.StartHost();
 
             ShowLobbyDetails(hostLobby);
         }
@@ -137,7 +156,7 @@ public class LobbyScript : MonoBehaviour
     public void StartPress()
     {
         if (isLobbyHost)
-            NetworkManager.Singleton.SceneManager.LoadScene("Game", UnityEngine.SceneManagement.LoadSceneMode.Single);
+            NetworkManagerSingleton.Instance.SceneManager.LoadScene("Game", UnityEngine.SceneManagement.LoadSceneMode.Single);
     }
     private async void ListLobbies()
     {
@@ -166,7 +185,7 @@ public class LobbyScript : MonoBehaviour
             var a = await RelayService.Instance.JoinAllocationAsync(lobby.Data[JoinCodeKey].Value);
 
             SetTransformAsClient(a);
-            NetworkManager.Singleton.StartClient();
+            NetworkManagerSingleton.Instance.StartClient();
             Debug.Log("Lobby Name : " + lobby.Name + ",Player Count : " + lobby.Players.Count);
         }
         catch (Exception e)

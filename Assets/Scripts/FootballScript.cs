@@ -1,9 +1,16 @@
+using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEngine;
 
-public class FootballScript : MonoBehaviour
+public class FootballScript : NetworkBehaviour
 {
     public Rigidbody rb;
     public bool IsAttached;
+
+    public override void OnNetworkDespawn()
+    {
+        Destroy(this.gameObject);
+    }
 
     private void Awake()
     {
@@ -16,11 +23,9 @@ public class FootballScript : MonoBehaviour
         if (rb != null)
         {
             rb.isKinematic = true; // Disable physics
-            rb.velocity = Vector3.zero; // Stop any existing motion
+            rb.velocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
 
-            // Destroy(transform.parent.GetComponent<NetworkRigidbody>());
-            // Destroy(rb);
         }
     }
 
