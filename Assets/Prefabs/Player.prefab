@@ -257,6 +257,7 @@ MonoBehaviour:
   _acceleration: 100
   _maxVelocity: 20
   _rotationSpeed: 450
+  _shootForce: 4000
 --- !u!54 &8311544554283164174
 Rigidbody:
   m_ObjectHideFlags: 0

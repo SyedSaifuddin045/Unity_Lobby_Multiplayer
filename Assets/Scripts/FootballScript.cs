@@ -1,5 +1,3 @@
-using Unity.Netcode.Components;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class FootballScript : MonoBehaviour

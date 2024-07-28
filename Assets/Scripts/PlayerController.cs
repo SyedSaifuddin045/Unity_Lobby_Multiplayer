@@ -6,15 +6,18 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private float _acceleration = 80;
     [SerializeField] private float _maxVelocity = 10;
     [SerializeField] private float _rotationSpeed = 450;
+    [SerializeField] private float _shootForce = 500;
 
     private Vector3 _input;
     private Rigidbody _rb;
     private Camera _cam;
     private Plane _groundPlane = new(Vector3.up, Vector3.zero);
+    private PlayerFootballHandler _footballHandler;
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody>();
+        _footballHandler = GetComponent<PlayerFootballHandler>();
     }
 
     public override void OnNetworkSpawn()
@@ -37,6 +40,11 @@ public class PlayerController : NetworkBehaviour
 
         _input = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
         HandleRotationClientSide();
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            ShootFootballServerRpc();
+        }
     }
 
     private void FixedUpdate()
@@ -88,5 +96,18 @@ public class PlayerController : NetworkBehaviour
     private void RequestRotateServerRpc(Quaternion targetRotation)
     {
         transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _rotationSpeed * Time.deltaTime);
+    }
+
+    [ServerRpc]
+    private void ShootFootballServerRpc()
+    {
+        if (_footballHandler == null || !_footballHandler.HasFootballAttached) return;
+
+        var football = _footballHandler.DetachFootball();
+        var footballRb = football.GetComponent<Rigidbody>();
+        if (footballRb != null)
+        {
+            footballRb.AddForce(transform.forward * _shootForce);
+        }
     }
 }

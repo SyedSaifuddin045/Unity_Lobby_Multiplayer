@@ -3,14 +3,15 @@ using UnityEngine;
 
 public class PlayerFootballHandler : NetworkBehaviour
 {
-
+    private GameObject football;
+    public bool HasFootballAttached => football != null;
     public Transform footBallAttachTransform;
     private void OnTriggerEnter(Collider other)
     {
         Debug.Log("Trigger Enter");
         if (IsServer && other.TryGetComponent<FootballScript>(out var footballScript))
         {
-            GameObject football = other.transform.parent.gameObject;
+            football = other.transform.parent.gameObject;
             AttachFootballServerRpc(football.GetComponent<NetworkObject>().NetworkObjectId);
         }
     }
@@ -54,5 +55,26 @@ public class PlayerFootballHandler : NetworkBehaviour
                 footballScript.Attach();
             }
         }
+    }
+
+    public GameObject DetachFootball()
+    {
+        if (football == null) return null;
+
+        var footballNetworkObject = football.GetComponent<NetworkObject>();
+        if (footballNetworkObject != null)
+        {
+            footballNetworkObject.transform.SetParent(null);
+
+            var footballScript = football.GetComponentInChildren<FootballScript>();
+            if (footballScript != null)
+            {
+                footballScript.Detach();
+            }
+        }
+
+        var detachedFootball = football;
+        football = null;
+        return detachedFootball;
     }
 }
